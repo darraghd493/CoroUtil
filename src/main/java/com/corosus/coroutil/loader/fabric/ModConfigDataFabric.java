@@ -9,8 +9,8 @@ import net.minecraftforge.fml.config.ModConfig;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 
+@SuppressWarnings({"unused", "rawtypes", "removal"})
 public class ModConfigDataFabric extends ModConfigData {
-
     public HashMap<String, ForgeConfigSpec.ConfigValue<String>> valsStringConfig = new HashMap<>();
     public HashMap<String, ForgeConfigSpec.ConfigValue<Integer>> valsIntegerConfig = new HashMap<>();
     public HashMap<String, ForgeConfigSpec.ConfigValue<Double>> valsDoubleConfig = new HashMap<>();
@@ -54,34 +54,31 @@ public class ModConfigDataFabric extends ModConfigData {
         } else if (obj instanceof Boolean) {
             valsBooleanConfig.get(fieldName).set((Boolean)obj);
             valsBooleanConfig.get(fieldName).save();
-        } else {
-            //dbg("unhandled datatype, update initField");
         }
     }
 
     @Override
     public void writeConfigFile(boolean resetConfig) {
 
-        //TODO: see if we need support for resetting config
-        //if (resetConfig) if (saveFilePath.exists()) saveFilePath.delete();
-        //preInitConfig = new Configuration(saveFilePath);
-        //preInitConfig.load();
+//        // TODO: See if we need support for resetting config
+//        if (resetConfig) if (saveFilePath.exists()) saveFilePath.delete();
+//        preInitConfig = new Configuration(saveFilePath);
+//        preInitConfig.load();
         ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
         BUILDER.comment("General mod settings").push("general");
 
         Field[] fields = configClass.getDeclaredFields();
-
-        for (int i = 0; i < fields.length; i++) {
-            Field field = fields[i];
+        for (Field field : fields) {
             String name = field.getName();
-
             addToConfig(BUILDER, field, name);
         }
 
         CULog.dbg("writeConfigFile invoked for " + this.configID + ", resetConfig: " + resetConfig);
         BUILDER.pop();
         ForgeConfigSpec CONFIG = BUILDER.build();
-        ForgeConfigRegistry.INSTANCE.register(ConfigMod.instance().MODID, ModConfig.Type.COMMON, CONFIG, saveFilePath + ".toml");
+
+        // TODO: !! NEEDS FIX !! Does not work on servers
+        ForgeConfigRegistry.INSTANCE.register(ConfigMod.MODID, ModConfig.Type.COMMON, CONFIG, saveFilePath + ".toml");
     }
 
     /**
@@ -120,8 +117,6 @@ public class ModConfigDataFabric extends ModConfigData {
             valsDoubleConfig.put(name, builder.comment(comment).defineInRange(name, (Double)obj, min, max));
         } else if (obj instanceof Boolean) {
             valsBooleanConfig.put(name, builder.comment(comment).define(name, (Boolean)obj));
-        } else {
-            //dbg("unhandled datatype, update initField");
         }
         setFieldBasedOnType(name, obj);
     }

@@ -6,10 +6,11 @@ import com.corosus.modconfig.IConfigCategory;
 import java.io.File;
 
 public class ConfigCoroUtil implements IConfigCategory {
-
 	@ConfigParams(comment = "logging")
 	public static boolean useLoggingLog = true;
+	@ConfigParams(comment = "logging")
 	public static boolean useLoggingDebug = false;
+	@ConfigParams(comment = "logging")
 	public static boolean useLoggingError = true;
 
 	@Override
@@ -34,8 +35,5 @@ public class ConfigCoroUtil implements IConfigCategory {
 
 	@Override
 	public void hookUpdatedValues() {
-
 	}
-
-
 }

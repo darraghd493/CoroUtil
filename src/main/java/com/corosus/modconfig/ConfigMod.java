@@ -3,15 +3,15 @@ package com.corosus.modconfig;
 import com.corosus.coroutil.config.ConfigCoroUtil;
 import com.corosus.coroutil.util.CULog;
 
-import java.io.File;
 import java.nio.file.Path;
 
 /**
  * Placed in com.corosus.modconfig for backwards compatibility
  */
 public abstract class ConfigMod {
-
     public static final String MODID = "coroutil";
+
+    @SuppressWarnings("unused")
     public Path configFolder = Path.of("config");
 
     private static ConfigMod instance;
@@ -21,7 +21,16 @@ public abstract class ConfigMod {
     }
 
     public void init() {
-        new File("./config/CoroUtil").mkdirs();
+        try {
+            Path relativeConfigDirPath = getConfigPath().resolve("CoroUtil");
+            if (!relativeConfigDirPath.toFile().exists() && !relativeConfigDirPath.toFile().mkdirs()) {
+                CULog.err("Failed to create config folder: " + relativeConfigDirPath);
+            }
+        } catch (Exception e) {
+            CULog.err("Failed to create config folder, this may cause issues with loading configs!");
+            //noinspection CallToPrintStackTrace
+            e.printStackTrace();
+        }
         CoroConfigRegistry.instance().addConfigFile(MODID, new ConfigCoroUtil());
     }
 
@@ -29,21 +38,18 @@ public abstract class ConfigMod {
         return instance;
     }
 
-    //TODO: if more needs like this come up, put it in MultiLoaderUtil and setup a class that contains all the methods, including makeLoaderSpecificConfigData
+    // TODO: If more needs like this come up, put it in MultiLoaderUtil and setup a class that contains all the methods, including makeLoaderSpecificConfigData
     public abstract Path getConfigPath();
 
     public abstract void reloadConfigs(String side);
 
-    /**
-     * Here for backwards compatibility
-     */
+    // Backwards compatibility methods, to be removed in the future
+    @Deprecated
     public static void addConfigFile(String modID, IConfigCategory configCat) {
         CoroConfigRegistry.instance().addConfigFile(modID, configCat);
     }
 
-    /**
-     * Here for backwards compatibility
-     */
+    @Deprecated
     public static void forceSaveAllFilesFromRuntimeSettings() {
         CoroConfigRegistry.instance().forceSaveAllFilesFromRuntimeSettings();
     }

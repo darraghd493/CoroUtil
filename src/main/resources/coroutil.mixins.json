@@ -4,9 +4,7 @@
   "package": "com.corosus.coroutil.mixin",
   "compatibilityLevel": "JAVA_17",
   "refmap": "coroutil.refmap.json",
-  "mixins": [
-
-  ],
+  "mixins": [],
   "injectors": {
     "defaultRequire": 1
   },

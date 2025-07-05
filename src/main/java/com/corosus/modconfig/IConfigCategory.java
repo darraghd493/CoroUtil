@@ -1,11 +1,13 @@
 package com.corosus.modconfig;
 
 public interface IConfigCategory {
+	String getConfigFileName();
 
-	public String getConfigFileName();
-	public String getCategory();
-	public void hookUpdatedValues();
-	public String getName();
-	public String getRegistryName();
-	
+	String getCategory();
+
+	void hookUpdatedValues();
+
+	String getName();
+
+	String getRegistryName();
 }

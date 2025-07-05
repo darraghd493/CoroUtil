@@ -12,15 +12,14 @@ import net.neoforged.fml.config.ModConfig;
 
 import java.nio.file.Path;
 
+@SuppressWarnings("unused")
 public class ConfigModFabric extends ConfigMod implements ModInitializer {
-
 	public ConfigModFabric() {
 		this.init();
 	}
 
 	@Override
 	public void onInitialize() {
-
 		CommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess, environment) -> {
 			CommandCoroConfig.register(dispatcher);
 		}));
@@ -28,7 +27,6 @@ public class ConfigModFabric extends ConfigMod implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STARTING.register(server -> {
 			CoroConfigRegistry.instance().allModsConfigsLoadedAndRegisteredHook();
 		});
-
 	}
 
 	@Override
@@ -36,7 +34,8 @@ public class ConfigModFabric extends ConfigMod implements ModInitializer {
 		return FabricLoader.getInstance().getConfigDir();
 	}
 
-	@Override
+	@SuppressWarnings("UnstableApiUsage")
+    @Override
 	public void reloadConfigs(String side) {
 		if (side.equals("client")) {
 			ConfigTracker.INSTANCE.loadConfigs(ModConfig.Type.CLIENT, ConfigMod.instance().getConfigPath());

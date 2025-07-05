@@ -7,18 +7,16 @@ import com.corosus.coroutil.util.OldUtil;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class CoroConfigRegistry {
-
-    //thread safe eager initialization
+    // Thread safe eager initialization
 	private static final CoroConfigRegistry instance = new CoroConfigRegistry();
 	
 	public List<ModConfigData> configs = new ArrayList<>();
 	public List<ModConfigData> liveEditConfigs = new ArrayList<>();
 	public ConcurrentHashMap<String, ModConfigData> lookupRegistryNameToConfig = new ConcurrentHashMap<>();
 
-    //for new forge config, routing reloaded config event to the class to update
+    // For new forge config, routing reloaded config event to the class to update
 	public ConcurrentHashMap<String, ModConfigData> lookupFilePathToConfig = new ConcurrentHashMap<>();
 
     public boolean needsInitialConfigRegistration = true;
@@ -108,7 +106,7 @@ public class CoroConfigRegistry {
         if (lookupRegistryNameToConfig.containsKey(configCat.getRegistryName())) {
             return;
         }
-    	
+
     	ModConfigData configData = MultiLoaderUtil.instance().makeLoaderSpecificConfigData(configCat.getConfigFileName(), categoryName, configCat.getClass(), configCat);
 
         if (configData == null) {
@@ -189,21 +187,4 @@ public class CoroConfigRegistry {
             data.writeConfigFile(false);
         }
     }
-
-    /*private final LevelResource SERVERCONFIG = new LevelResource("serverconfig");
-
-    private Path getServerConfigPath(final MinecraftServer server)
-    {
-        final Path serverConfig = server.getWorldPath(SERVERCONFIG);
-        if (!Files.isDirectory(serverConfig)) {
-            try {
-                Files.createDirectories(serverConfig);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return serverConfig;
-    }*/
-    
-    /* Main Usage Methods End */
 }

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+@SuppressWarnings({"rawtypes", "unchecked", "CallToPrintStackTrace"})
 public abstract class ModConfigData {
 	public String configID;
 	public Class configClass;
@@ -17,7 +18,7 @@ public abstract class ModConfigData {
 	public HashMap<String, Double> valsDouble = new HashMap<>();
 	public HashMap<String, Boolean> valsBoolean = new HashMap<>();
 
-	//Client data
+	// Client data
 	public List<ConfigEntryInfo> configData = new ArrayList<>();
     public String saveFilePath;
 
@@ -30,43 +31,47 @@ public abstract class ModConfigData {
 	
 	public void updateHashMaps() {
     	Field[] fields = configClass.getDeclaredFields();
-    	
-    	for (int i = 0; i < fields.length; i++) {
-    		Field field = fields[i];
-    		String name = field.getName();
-    		processField(name);
-    	}
+        for (Field field : fields) {
+            String name = field.getName();
+            processField(name);
+        }
     }
 
 	public void updateConfigFieldValues() {
 		Field[] fields = configClass.getDeclaredFields();
-
-		for (int i = 0; i < fields.length; i++) {
-			Field field = fields[i];
-			String name = field.getName();
-			processFieldFromForgeConfig(name);
-		}
+        for (Field field : fields) {
+            String name = field.getName();
+            processFieldFromForgeConfig(name);
+        }
 	}
 
 	private void processFieldFromForgeConfig(String fieldName) {
 		try {
 			Object obj = CoroConfigRegistry.instance().getField(configID, fieldName);
-			if (obj instanceof String) {
-				valsString.put(fieldName, (String)obj);
-				setFieldBasedOnType(fieldName, getConfigString(fieldName));
-			} else if (obj instanceof Integer) {
-				valsInteger.put(fieldName, (Integer)obj);
-				setFieldBasedOnType(fieldName, getConfigInteger(fieldName));
-			} else if (obj instanceof Double) {
-				valsDouble.put(fieldName, (Double)obj);
-				setFieldBasedOnType(fieldName, getConfigDouble(fieldName));
-			} else if (obj instanceof Boolean) {
-				valsBoolean.put(fieldName, (Boolean)obj);
-				setFieldBasedOnType(fieldName, getConfigBoolean(fieldName));
-			} else {
-				//dbg("unhandled datatype, update initField");
-			}
-		} catch (Exception ex) { ex.printStackTrace(); }
+            switch (obj) {
+                case String s -> {
+                    valsString.put(fieldName, s);
+                    setFieldBasedOnType(fieldName, getConfigString(fieldName));
+                }
+                case Integer i -> {
+                    valsInteger.put(fieldName, i);
+                    setFieldBasedOnType(fieldName, getConfigInteger(fieldName));
+                }
+                case Double v -> {
+                    valsDouble.put(fieldName, v);
+                    setFieldBasedOnType(fieldName, getConfigDouble(fieldName));
+                }
+                case Boolean b -> {
+                    valsBoolean.put(fieldName, b);
+                    setFieldBasedOnType(fieldName, getConfigBoolean(fieldName));
+                }
+                case null, default -> {
+					// no-op
+                }
+            }
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void initData() {
@@ -91,106 +96,75 @@ public abstract class ModConfigData {
     	try {
     		if (valsString.containsKey(name)) {
     			OldUtil.setPrivateValue(configClass, configInstance, name, (String)obj);
-    			inputField(name, (String)obj);
+    			refreshFieldUnhandled(name, obj);
     		} else if (valsInteger.containsKey(name)) {
     			OldUtil.setPrivateValue(configClass, configInstance, name, Integer.valueOf(obj.toString()));
-    			inputField(name, Integer.valueOf(obj.toString()));
+    			refreshFieldUnhandled(name, Integer.valueOf(obj.toString()));
     		} else if (valsDouble.containsKey(name)) {
     			OldUtil.setPrivateValue(configClass, configInstance, name, Double.valueOf(obj.toString()));
-    			inputField(name, Double.valueOf(obj.toString()));
+    			refreshFieldUnhandled(name, Double.valueOf(obj.toString()));
     		} else if (valsBoolean.containsKey(name)) {
     			OldUtil.setPrivateValue(configClass, configInstance, name, Boolean.valueOf(obj.toString()));
-    			inputField(name, Boolean.valueOf(obj.toString()));
+    			refreshFieldUnhandled(name, Boolean.valueOf(obj.toString()));
     		} else {
     			return false;
     		}
     		
     		return true;
-    	}
-    	catch (Exception ex) {
-    		ex.printStackTrace();
+    	} catch (Exception e) {
+    		e.printStackTrace();
     	}
     	return false;
     }
     
-    /*public void writeHashMapsToFile() {
-    	Iterator it = valsString.entrySet().iterator();
-	    while (it.hasNext()) {
-	        Map.Entry pairs = (Map.Entry)it.next();
-	        String name = (String)pairs.getKey();
-	        Object val = pairs.getValue();
-	    }
-    }*/
-    
     private void processField(String fieldName) {
     	try {
 	    	Object obj = CoroConfigRegistry.instance().getField(configID, fieldName);
-	    	if (obj instanceof String) {
-	    		valsString.put(fieldName, (String)obj);
-	    	} else if (obj instanceof Integer) {
-	    		valsInteger.put(fieldName, (Integer)obj);
-	    	} else if (obj instanceof Double) {
-	    		valsDouble.put(fieldName, (Double)obj);
-	    	} else if (obj instanceof Boolean) {
-	    		valsBoolean.put(fieldName, (Boolean)obj);
-	    	} else {
-	    		//dbg("unhandled datatype, update initField");
-	    	}
-    	} catch (Exception ex) { ex.printStackTrace(); }
-    }
-    
-    private void inputField(String fieldName, Object obj) {
-    	if (obj instanceof String) {
-    		valsString.put(fieldName, (String)obj);
-    	} else if (obj instanceof Integer) {
-    		valsInteger.put(fieldName, (Integer)obj);
-    	} else if (obj instanceof Double) {
-    		valsDouble.put(fieldName, (Double)obj);
-    	} else if (obj instanceof Boolean) {
-    		valsBoolean.put(fieldName, (Boolean)obj);
-    	} else {
-    		
-    	}
+			refreshField(fieldName, obj);
+    	} catch (Exception e) {
+			e.printStackTrace();
+		}
     }
     
     public abstract void writeConfigFile(boolean resetConfig);
 
 	public void updateConfigFileWithRuntimeValues() {
 		Field[] fields = configClass.getDeclaredFields();
-
-		for (int i = 0; i < fields.length; i++) {
-			Field field = fields[i];
-			String name = field.getName();
-			saveField(name);
-		}
+        for (Field field : fields) {
+            String name = field.getName();
+            saveField(name);
+        }
 	}
 
-	//updates values in lists, updates forges config field, saves field
+	// Updates values in lists, updates forges config field, saves field
 	private void saveField(String fieldName) {
 		try {
 			Object obj = CoroConfigRegistry.instance().getField(configID, fieldName);
-			if (obj instanceof String) {
-				valsString.put(fieldName, (String)obj);
-			} else if (obj instanceof Integer) {
-				valsInteger.put(fieldName, (Integer)obj);
-			} else if (obj instanceof Double) {
-				valsDouble.put(fieldName, (Double)obj);
-			} else if (obj instanceof Boolean) {
-				valsBoolean.put(fieldName, (Boolean)obj);
-			} else {
-				//dbg("unhandled datatype, update initField");
-			}
+			refreshField(fieldName, obj);
 			setConfig(fieldName, obj);
-		} catch (Exception ex) { ex.printStackTrace(); }
-	}/*
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	private void refreshField(String fieldName, Object fieldInst) {
+		try {
+			refreshFieldUnhandled(fieldName, fieldInst);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-	public abstract void initConfigString(String name, String comment, String value);
-
-	public abstract void initConfigInteger(String name, String comment, int value, int min, int max);
-
-	public abstract void initConfigDouble(String name, String comment, double value, double min, double max);
-
-	public abstract void initConfigBoolean(String name, String comment, boolean value);*/
+	private void refreshFieldUnhandled(String fieldName, Object fieldInst) {
+		if (fieldInst instanceof String) {
+			valsString.put(fieldName, (String)fieldInst);
+		} else if (fieldInst instanceof Integer) {
+			valsInteger.put(fieldName, (Integer)fieldInst);
+		} else if (fieldInst instanceof Double) {
+			valsDouble.put(fieldName, (Double)fieldInst);
+		} else if (fieldInst instanceof Boolean) {
+			valsBoolean.put(fieldName, (Boolean)fieldInst);
+		}
+	}
 
 	public abstract String getConfigString(String fieldName);
 
@@ -201,5 +175,4 @@ public abstract class ModConfigData {
 	public abstract Boolean getConfigBoolean(String fieldName);
 
 	public abstract <T> void setConfig(String fieldName, T value);
-
 }
