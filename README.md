@@ -7,3 +7,5 @@ Refactored and patched version of CoroUtil for usage in my personal modpack.
 - Removed mod dependencies except for Fabric & the Fabric API
 
 The code is of _alright_ quality and is not intended for public use.
+
+**Note:** this mod is _still_ not usable, I have not identified a patch for servers.
